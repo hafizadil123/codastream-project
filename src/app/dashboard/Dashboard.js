@@ -1,60 +1,20 @@
 import React, { Component } from 'react';
-import { Doughnut } from 'react-chartjs-2';
-import Slider from "react-slick";
-import { TodoListComponent } from '../apps/TodoList'
-import { VectorMap } from "react-jvectormap"
 import ScrollDialog  from '../shared/Modal';
 import ModalContext from '../shared/context';
 import { COOKIE_TITLE_MODAL, COOKIE_TEXT_MODAL, PRIVACY_TITLE_MODAL, PRIVACY_TEXT_MODAL } from '../../constant';
-
-const mapData = {
-  "BZ": 75.00,
-  "US": 56.25,
-  "AU": 15.45,
-  "GB": 25.00,
-  "RO": 10.25,
-  "GE": 33.25
-}
-
+import { getContentfulData } from '../../utils/index';
 export class Dashboard extends Component {
-
-  transactionHistoryData =  {
-    labels: ["Paypal", "Stripe","Cash"],
-    datasets: [{
-        data: [55, 25, 20],
-        backgroundColor: [
-          "#111111","#00d25b","#ffab00"
-        ]
-      }
-    ]
-  };
-
-  transactionHistoryOptions = {
-    responsive: true,
-    maintainAspectRatio: true,
-    segmentShowStroke: false,
-    cutoutPercentage: 70,
-    elements: {
-      arc: {
-          borderWidth: 0
-      }
-    },      
-    legend: {
-      display: false
-    },
-    tooltips: {
-      enabled: true
+  
+  constructor(props) {
+    super(props);
+    this.entryId = 'mainPage';
+    this.state = {
+      data: null
     }
   }
-
-  sliderSettings = {
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1
-  }
-  toggleProBanner() {
-    document.querySelector('.proBanner').classList.toggle("hide");
+  async componentDidMount() {
+    const data = await getContentfulData(this.entryId);
+    this.setState({data: data[0]});
   }
   handleClose = (value) => {
     return <ModalContext.Consumer>
@@ -69,6 +29,7 @@ export class Dashboard extends Component {
     history.push(`/dashboard/detail-page?type=${type}`)
   } 
   render () {
+    const { data } = this.state;
     return (
       <div>
         <ModalContext.Consumer>
@@ -87,87 +48,29 @@ export class Dashboard extends Component {
           }
         </ModalContext.Consumer>
         <div className="row">
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card" onClick={() =>this.redirectToDetailPage('hiphop')}>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">Hip Hop</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">Music</p>
+          {data && data.fields.category.length > 0 && data.fields.category.map(item => (
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card" key={Math.random()}>
+              <div className="card" onClick={() => this.redirectToDetailPage(item.fields.name)}>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">{item.fields.name}</h3>
+                        <p className="text-success ml-2 mb-0 font-weight-medium">Music</p>
+                      </div>
+                    </div>
+                    <div className="col-3">
+                      <div className="icon icon-box-success ">
+                        <span className="mdi mdi-arrow-top-right icon-item"></span>
+                      </div>
                     </div>
                   </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success ">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
+                  <h6 className="text-muted font-weight-normal"></h6>
                 </div>
-                <h6 className="text-muted font-weight-normal"></h6>
               </div>
             </div>
-          </div>
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card" onClick={() =>this.redirectToDetailPage('modern')}>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">Modern</h3>
-                      <p className="text-warning ml-2 mb-0 font-weight-medium">Music</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-warning">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal"></h6>
-              </div>
-            </div>
-          </div>
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card" onClick={() =>this.redirectToDetailPage('music')}>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">Classical</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">Music</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal"></h6>
-              </div>
-            </div>
-          </div>
-   
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">Latest</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">Music</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success ">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal"></h6>
-              </div>
-            </div>
-          </div>
+          ))}
+         
         </div>
     
         </div>
