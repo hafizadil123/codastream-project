@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
@@ -10,6 +10,8 @@ import Typography from '@material-ui/core/Typography';
 import RegisterImage from '../../assets/images/auth/login-bg.jpg';
 import { getContentfulData } from '../../utils/index';
 import { documentToPlainTextString } from '@contentful/rich-text-plain-text-renderer';
+import Grid from '@material-ui/core/Grid';
+import ModalContext from "../shared/context";
 
 const queryString = require('query-string');
 
@@ -33,24 +35,52 @@ export default function DetailPage() {
   const [data, setData] = useState(null);
   const classes = useStyles();
   const parsed = queryString.parse(window.location.search);
+  const context = useContext(ModalContext);
+  console.log('calleeee', context);
+  const callApi = async () => {
+    const data1 = await getContentfulData('category');
+    const filterData = data1 && data1.filter(item => item.fields.name === parsed.type);
+    const [first] = filterData || [];
+    return first;
+  }
   useEffect(() => {
     async function fetch() {
-      const data1 = await getContentfulData('category');
-      const filterData = data1 && data1.filter(item => item.fields.name === parsed.type);
-      const [first] = filterData || [];
+      const first = await callApi();
       if(first && first.fields.songs) {
+        localStorage.setItem('songs', JSON.stringify(first.fields.songs));
         setData(first.fields.songs);
       }
-
     }
     fetch();
   }, [parsed.type]);
 
+
+
+
+  useEffect(() => {
+    if(context.search){
+      const filterData = data && data?.filter(item => item.fields.name.toLowerCase().includes(context.search.toLowerCase()));
+      if(filterData) {
+        setData(filterData);
+      } 
+    } else {
+      const orignalData = JSON.parse(localStorage.getItem('songs'))
+      setData(orignalData)
+    }
+   
+  
+  }, [context.search])
+
   return (
     <>
       <div className={classes.wrapper}>
+      {data && data.length === 0 && <Typography variant="h6" component="h6">
+  No data found!
+</Typography> }
 
+      <Grid container spacing={3}>
         {data && data.length > 0 && data.map(item => (
+          <Grid xs={4}>
           <Card className={classes.root}>
             <CardActionArea>
               <CardMedia
@@ -87,8 +117,10 @@ export default function DetailPage() {
         />
             </CardActions>
           </Card>
+          </Grid>
 
         ))}
+        </Grid>
 
       </div>
     </>

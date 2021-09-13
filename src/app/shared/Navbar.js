@@ -1,16 +1,29 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Trans } from 'react-i18next';
+import ModalContext from "../shared/context";
+import { useAuth0 } from '@auth0/auth0-react';
 
-class Navbar extends Component {
-  toggleOffcanvas() {
+export default function Navbar() {
+  const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
   }
-  toggleRightSidebar() {
-    document.querySelector('.right-sidebar').classList.toggle('open');
+  const saveProfile = (profile) => {
+
+    localStorage.setItem('profile', JSON.stringify(profile));
+    // context.handleIsAuthenticated(true);
+    return true;
   }
-  render () {
+  const removeCache = () => {
+    localStorage.removeItem('profile');
+    localStorage.removeItem('songs');
+    localStorage.removeItem('library');
+    return true;
+  }
+    const { isLoading, loginWithRedirect, isAuthenticated, user, logout  } = useAuth0();
+
+    if (isLoading) return <div>Loading...</div>
     return (
       <nav className="navbar p-0 fixed-top d-flex flex-row">
         <div className="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
@@ -21,20 +34,27 @@ class Navbar extends Component {
             <span className="mdi mdi-menu"></span>
           </button>
           <ul className="navbar-nav w-100">
-            <li className="nav-item w-100">
+            <ModalContext.Consumer>
+              {({ handleSearch }) => (
+                <li className="nav-item w-100">
               <form className="nav-link mt-2 mt-md-0 d-none d-lg-flex search">
-                <input type="text" className="form-control" placeholder="Search Music ..." />
+                <input type="text" className="form-control" placeholder="Search Music ..." onChange={(e) => handleSearch(e.target.value)} />
               </form>
             </li>
+              )}
+            
+            </ModalContext.Consumer>
+           
           </ul>
           <ul className="navbar-nav navbar-nav-right">
          
-            <Link to="/user-pages/login-1" style={{color: 'white'}}>Login</Link>
-            <Dropdown alignRight as="li" className="nav-item">
+            {!isAuthenticated && <div onClick={() => loginWithRedirect()}><Link to="" style={{color: 'white'}}>Login</Link></div> }
+            {console.log('Login', isAuthenticated, user)}
+            {isAuthenticated && saveProfile(user) && <Dropdown alignRight as="li" className="nav-item">
               <Dropdown.Toggle as="a" className="nav-link cursor-pointer no-caret">
                 <div className="navbar-profile">
-                  <img className="img-xs rounded-circle" src={require('../../assets/images/faces/face15.jpg')} alt="profile" />
-                  <p className="mb-0 d-none d-sm-block navbar-profile-name"><Trans>Adil Sikandar</Trans></p>
+                  <img className="img-xs rounded-circle" src={user.picture} alt="profile" />
+                  <p className="mb-0 d-none d-sm-block navbar-profile-name"><Trans>{user.name}</Trans></p>
                   <i className="mdi mdi-menu-down d-none d-sm-block"></i>
                 </div>
               </Dropdown.Toggle>
@@ -49,21 +69,21 @@ class Navbar extends Component {
                       <i className="mdi mdi-logout text-danger"></i>
                     </div>
                   </div>
-                  <div className="preview-item-content">
+                  <div className="preview-item-content" onClick = {() => removeCache() && logout() }>
                     <p className="preview-subject mb-1"><Trans>Log Out</Trans></p>
                   </div>
                 </Dropdown.Item>
                 <Dropdown.Divider />
               </Dropdown.Menu>
             </Dropdown>
+          }
           </ul>
-          <button className="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" onClick={this.toggleOffcanvas}>
+          <button className="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" onClick={toggleOffcanvas}>
             <span className="mdi mdi-format-line-spacing"></span>
           </button>
         </div>
       </nav>
     );
-  }
-}
+  }  
 
-export default Navbar;
+

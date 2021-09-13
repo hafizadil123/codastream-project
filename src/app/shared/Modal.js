@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -15,6 +15,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import axios from 'axios';
+import { documentToPlainTextString } from '@contentful/rich-text-plain-text-renderer';
 
 const styles = (theme) => ({
   root: {
@@ -27,6 +29,9 @@ const styles = (theme) => ({
     top: theme.spacing(1),
     color: theme.palette.grey[500],
   },
+  dialogText: {
+    color: 'red'
+  }
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -56,14 +61,77 @@ const DialogActions = withStyles((theme) => ({
   },
 }))(MuiDialogActions);
 
-export default function CustomizedDialogs({show, title, text, type, onCloseHandle}) {
+const DialogContentTexts = withStyles((theme) => ({
+  root: {
+    color: 'red'
+  }
+}))(MuiDialogActions)
+
+export default function CustomizedDialogs({show, title, text, type, onCloseHandle, data = [], history}) {
+  const [songName, setSongName] = useState('');
+  const [customName, setCustomName] = useState('');
+  const [isError, setError] = useState(null);
+  const profile = JSON.parse(localStorage.getItem('profile'));
+  console.log('profile', data);
   const handleClose = () => {
-    onCloseHandle(false);
+    const apiUrl = 'http://localhost:5000/api';
+    const filterData = data?.filter(item => item.name === songName);
+    const reqObject = {
+      songName,
+      customName,
+      userId: profile.sub,
+      email: profile.email,
+      albumName: filterData[0].albumName || '',
+      duration: filterData[0].duration || '',
+      imageUrl: filterData[0].image.fields.file.url || '',
+      rating: filterData[0].rating || '',
+      singerName: filterData[0].singerName || '',
+      lyrics: documentToPlainTextString(filterData[0].lyrics) || ''
+    };
+    axios.post(`${apiUrl}/users/create-playlist`, reqObject).then((res) => {
+      const { success } = res.data || {};
+      if(success) {
+        setError(false);
+        onCloseHandle(false);
+        history.push('/dashboard/your-library');
+      }
+      setError(true)
+
+    }).catch = (err) => {
+      setError(true)
+    }
+
   };
+  
+  const handleCloseCancel = () => {
+    setError(null)
+    onCloseHandle(false);
+  }
+
+  const handleChange = (event) => {
+    setSongName(event.target.value);
+  }
+  const handleChangeName = (event) => {
+    setCustomName(event.target.value);
+  }
+  const handleCloseDialog = () => {
+    onCloseHandle(false);
+  }
+  const getErrorMessage = () => {
+    if(isError) {
+      return 'something wents wrong';
+    } else if(isError == null) {
+      return 'To add your wish song, please select from the options'
+    }
+    else {
+      return 'song has been added in your library'
+    }
+  }
+  
   return (
     type === 'text' ? <div>
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={show}>
-        <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+        <DialogTitle id="customized-dialog-title" onClose={handleCloseDialog}>
          {title}
         </DialogTitle>
         <DialogContent dividers>
@@ -72,26 +140,26 @@ export default function CustomizedDialogs({show, title, text, type, onCloseHandl
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose} color="primary">
+          <Button autoFocus onClick={handleCloseDialog} color="primary">
             Got it!
           </Button>
         </DialogActions>
       </Dialog>
     </div> : 
      <Dialog open={show} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Create Playlist</DialogTitle>
+        <DialogTitle id="form-dialog-title">Add song in your Playlist</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-             To add your wish song, please select from the options
-          </DialogContentText>
-
+         <DialogContentText>
+            {getErrorMessage()}
+          </DialogContentText> 
            <FormControl>
 
            <TextField
             autoFocus
             margin="dense"
+            onChange={handleChangeName}
             id="name"
-            label="Enter Playlist Name"
+            label="Custom Name"
             type="playlist_name"
             fullWidth
           />
@@ -102,17 +170,16 @@ export default function CustomizedDialogs({show, title, text, type, onCloseHandl
         <Select
           labelId="demo-simple-select-placeholder-label-label"
           id="demo-simple-select-placeholder-label"
-          value={2}
-          onChange={() => {}}
+          value={songName}
+          onChange={handleChange}
           displayEmpty
           className={''}
         >
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
-          <MenuItem value={10}>Song Title 1</MenuItem>
-          <MenuItem value={20}>Song Title 2</MenuItem>
-          <MenuItem value={30}>Song Title 3</MenuItem>
+          {data && data?.map(item =>  <MenuItem value={item.name}>{item.name || ''}</MenuItem>)}
+
         </Select>
         <FormHelperText>Add song in your library</FormHelperText>
       </FormControl>
@@ -122,7 +189,7 @@ export default function CustomizedDialogs({show, title, text, type, onCloseHandl
           <Button onClick={handleClose} color="primary">
             Create
           </Button>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleCloseCancel} color="primary">
             Cancel
           </Button>
         </DialogActions>

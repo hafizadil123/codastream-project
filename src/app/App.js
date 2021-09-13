@@ -12,7 +12,8 @@ class App extends Component {
     super(props);
     this.state = {
       show: false,
-      modalType: ''
+      modalType: '',
+      search: '',
     }
   }
   componentDidMount() {
@@ -21,16 +22,21 @@ class App extends Component {
   
   handleToggleShow = (value, type) => {
     console.log('update', value, type);
-    this.setState({ show: value, modalType: type});
+    this.setState({ show: value, modalType: type });
+  }
+  handleSearch = (value) => {
+    this.setState({search: value})
   }
   render () {
-    let navbarComponent = !this.state.isFullPageLayout ? <Navbar/> : '';
+    let navbarComponent = !this.state.isFullPageLayout ? <Navbar /> : '';
     let sidebarComponent = !this.state.isFullPageLayout ? <Sidebar/> : '';
     let footerComponent = !this.state.isFullPageLayout ? <Footer/> : '';
     const updateContext = {
       show: this.state.show,
       handleToggleShow: this.handleToggleShow,
-      modalType: this.state.modalType
+      modalType: this.state.modalType,
+      handleSearch: this.handleSearch,
+      search: this.state.search
     };
 
     return (

@@ -2,11 +2,15 @@ import React, { Component } from "react";
 import { Link, withRouter } from "react-router-dom";
 import { Trans } from "react-i18next";
 import ModalContext from "../shared/context";
+import { withAuth0 } from '@auth0/auth0-react';
+
 class Sidebar extends Component {
   constructor(props) {
     super(props);
     this.state = {
       show: false,
+      isProfileUpdated: false,
+      profile: null
     };
   }
 
@@ -54,8 +58,23 @@ class Sidebar extends Component {
   }
   handleClose = () => this.setState({ show: false });
   handleShow = () => this.setState({ show: true });
+  isAuthThenRedirect = (profile, link, loginFunction, isAuth, isPlaylist = false) => {
+    const { history } = this.props;  
+    if(profile && isAuth) {
+        history.push(link)
+      }    
+      if(!isAuth) {
+        loginFunction();
+      }
+      if(isPlaylist && profile && isAuth) {
+       return true;
+      }
+      return false;
+  }
   render() {
-    console.log("asdfghjk", this.state.show);
+    const { isAuthenticated, loginWithRedirect } = this.props.auth0;
+    const profile = JSON.parse(localStorage.getItem('profile')) || {};
+   
     return (
       <nav className="sidebar sidebar-offcanvas" id="sidebar">
         <div className="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
@@ -64,7 +83,7 @@ class Sidebar extends Component {
           </a>
           <a className="sidebar-brand brand-logo-mini" href="index.html">
             <img
-              src={require("../../assets/images/logo-mini.svg")}
+              src={profile.picture || require("../../assets/images/logo-mini.svg")}
               alt="logo"
             />
           </a>
@@ -77,17 +96,17 @@ class Sidebar extends Component {
                 <div className="count-indicator">
                   <img
                     className="img-xs rounded-circle "
-                    src={require("../../assets/images/faces/face15.jpg")}
+                    src={profile.picture || require("../../assets/images/faces/face15.jpg")}
                     alt="profile"
                   />
                   <span className="count bg-success"></span>
                 </div>
                 <div className="profile-name">
                   <h5 className="mb-0 font-weight-normal">
-                    <Trans>Adil Sikandar</Trans>
+                    <Trans>{profile.name || 'Guest'} </Trans>
                   </h5>
                   <span>
-                    <Trans>Gold Member</Trans>
+                    <Trans>{profile.email || 'guest@example.com'}</Trans>
                   </span>
                 </div>
               </div>
@@ -120,8 +139,9 @@ class Sidebar extends Component {
                 ? "nav-item menu-items"
                 : "nav-item menu-items"
             }
+            onClick={() => this.isAuthThenRedirect(profile, "/dashboard/your-library", loginWithRedirect, isAuthenticated, false, () => {})}
           >
-            <Link className="nav-link" to="/dashboard/your-library">
+            <Link className="nav-link" to="">
               <span className="menu-icon">
                 <i className="mdi mdi-speedometer"></i>
               </span>
@@ -130,8 +150,9 @@ class Sidebar extends Component {
               </span>
             </Link>
           </li>
-
-          <ModalContext.Consumer>
+          {
+            isAuthenticated && 
+            <ModalContext.Consumer>
             {({ handleToggleShow, show }) => (
               <li
                 className={
@@ -152,6 +173,8 @@ class Sidebar extends Component {
               </li>
             )}
           </ModalContext.Consumer>
+
+          }
           <br />
           <br />
           <br />
@@ -230,4 +253,4 @@ class Sidebar extends Component {
   }
 }
 
-export default withRouter(Sidebar);
+export default withAuth0(withRouter(Sidebar));
