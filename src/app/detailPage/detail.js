@@ -39,7 +39,7 @@ export default function DetailPage() {
   console.log('calleeee', context);
   const callApi = async () => {
     const data1 = await getContentfulData('category');
-    const filterData = data1 && data1.filter(item => item.fields.name === parsed.type);
+    const filterData = data1 && data1.filter(item => item.fields.slug === parsed.type);
     const [first] = filterData || [];
     return first;
   }
@@ -48,14 +48,12 @@ export default function DetailPage() {
       const first = await callApi();
       if(first && first.fields.songs) {
         localStorage.setItem('songs', JSON.stringify(first.fields.songs));
+        
         setData(first.fields.songs);
       }
     }
     fetch();
   }, [parsed.type]);
-
-
-
 
   useEffect(() => {
     if(context.search){
@@ -70,7 +68,6 @@ export default function DetailPage() {
    
   
   }, [context.search])
-
   return (
     <>
       <div className={classes.wrapper}>

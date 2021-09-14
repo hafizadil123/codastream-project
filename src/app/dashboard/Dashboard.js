@@ -3,6 +3,7 @@ import ScrollDialog  from '../shared/Modal';
 import ModalContext from '../shared/context';
 import { COOKIE_TITLE_MODAL, COOKIE_TEXT_MODAL, PRIVACY_TITLE_MODAL, PRIVACY_TEXT_MODAL } from '../../constant';
 import { getContentfulData } from '../../utils/index';
+import { withAuth0 } from '@auth0/auth0-react';
 export class Dashboard extends Component {
   
   constructor(props) {
@@ -31,6 +32,8 @@ export class Dashboard extends Component {
   render () {
     const { data } = this.state;
     let songsArray = [];
+    const { isLoading, isAuthenticated } = this.props.auth0;
+    if (isLoading ) return <div>Loading...</div>
     const filterSongs = data?.map(item => {
      return  item.fields?.songs?.filter(item => songsArray.push(item.fields));
     });
@@ -82,4 +85,4 @@ export class Dashboard extends Component {
   }
 }
 
-export default Dashboard;
+export default withAuth0(Dashboard);

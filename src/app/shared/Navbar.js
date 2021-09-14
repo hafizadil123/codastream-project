@@ -21,9 +21,7 @@ export default function Navbar() {
     localStorage.removeItem('library');
     return true;
   }
-    const { isLoading, loginWithRedirect, isAuthenticated, user, logout  } = useAuth0();
-
-    if (isLoading) return <div>Loading...</div>
+    const { loginWithRedirect, isAuthenticated, user, logout  } = useAuth0();
     return (
       <nav className="navbar p-0 fixed-top d-flex flex-row">
         <div className="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">

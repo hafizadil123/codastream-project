@@ -18,6 +18,7 @@ import ModalContext from "../shared/context";
 const useStyles = makeStyles({
   root: {
     maxWidth: 345,
+    
   },
   wrapper: {
     display: 'flex',
@@ -59,7 +60,7 @@ export default function Library() {
     }
    
   
-  }, [context.search])
+  }, [context.search, data])
 
   return (
       <>

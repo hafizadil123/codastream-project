@@ -67,12 +67,12 @@ class Sidebar extends Component {
         loginFunction();
       }
       if(isPlaylist && profile && isAuth) {
-       return true;
+        history.push(link)
       }
-      return false;
+      history.push('/dashboard')
   }
   render() {
-    const { isAuthenticated, loginWithRedirect } = this.props.auth0;
+    const { isLoading, isAuthenticated, loginWithRedirect } = this.props.auth0;
     const profile = JSON.parse(localStorage.getItem('profile')) || {};
    
     return (
@@ -135,7 +135,7 @@ class Sidebar extends Component {
           </li>
           <li
             className={
-              this.isPathActive("/")
+              this.isPathActive("/dashboard/your-library")
                 ? "nav-item menu-items"
                 : "nav-item menu-items"
             }
@@ -151,12 +151,12 @@ class Sidebar extends Component {
             </Link>
           </li>
           {
-            isAuthenticated && 
+            !isLoading && isAuthenticated && 
             <ModalContext.Consumer>
             {({ handleToggleShow, show }) => (
               <li
                 className={
-                  this.isPathActive("/dashboard1")
+                  this.isPathActive("/dashboard")
                     ? "nav-item menu-items"
                     : "nav-item menu-items"
                 }
