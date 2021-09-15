@@ -81,11 +81,11 @@ export default function CustomizedDialogs({show, title, text, type, onCloseHandl
       customName,
       userId: profile.sub,
       email: profile.email,
-      albumName: filterData[0].albumName || '',
-      duration: filterData[0].duration || '',
-      imageUrl: filterData[0].image.fields.file.url || '',
-      rating: filterData[0].rating || '',
-      singerName: filterData[0].singerName || '',
+      albumName: filterData[0]?.albumName || '',
+      duration: filterData[0]?.duration || '',
+      imageUrl: filterData[0]?.image.fields.file.url || '',
+      rating: filterData[0]?.rating || '',
+      singerName: filterData[0]?.singerName || '',
       lyrics: documentToPlainTextString(filterData[0].lyrics) || ''
     };
     axios.post(`${apiUrl}/users/create-playlist`, reqObject).then((res) => {
